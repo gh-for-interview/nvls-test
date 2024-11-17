@@ -16,6 +16,10 @@ okhttp3BomVersion="4.10.0"
 
 restAssuredVersion="5.4.0"
 
+guavaVersion="33.3.1-jre"
+
+apacheCommonsLangVersion="3.17.0"
+
 [libraries]
 
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertjVersion" }
@@ -34,4 +38,8 @@ logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "log
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoVersion" }
 
 restAssured = { module = "io.rest-assured:rest-assured", version.ref = "restAssuredVersion"}
+
+guava = { module = "com.google.guava:guava", version.ref = "guavaVersion" }
+
+apache-commons-lang = { module = 'org.apache.commons:commons-lang3', version.ref = "apacheCommonsLangVersion" }
 

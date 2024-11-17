@@ -15,6 +15,9 @@ dependencies {
     implementation(libs.jackson.datatype.jsr310)
     implementation(libs.logbackClassic)
 
+    implementation(libs.guava)
+    implementation(libs.apache.commons.lang)
+
     implementation(libs.javalin.bundle)
 
     testImplementation(libs.assertj.core)

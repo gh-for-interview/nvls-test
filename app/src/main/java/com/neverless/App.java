@@ -6,18 +6,46 @@ package com.neverless;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.neverless.domain.AccountRepository;
+import com.neverless.domain.Money;
+import com.neverless.domain.account.AccountRepository;
+import com.neverless.domain.account.AccountRepositoryInMem;
+import com.neverless.domain.transaction.TransactionRepository;
+import com.neverless.domain.transaction.TransactionRepositoryInMem;
+import com.neverless.integration.WithdrawalService;
 import com.neverless.resources.Resources;
+import com.neverless.service.*;
 import io.javalin.Javalin;
 import io.javalin.json.JavalinJackson;
 
+import java.time.Duration;
+import java.util.concurrent.Executors;
+
 
 public class App {
-    private final AccountRepository accountRepo = null;
-    private final Resources resources = new Resources(accountRepo);
     private final Javalin javalin;
+    private final ScheduledTransactionProcessor transactionProcessor;
 
-    public App() {
+    public final AccountRepository accountRepository;
+    public final TransactionRepository transactionRepository;
+    public final WithdrawalService<Money> withdrawalService;
+
+    public App(WithdrawalService<Money> withdrawalService) {
+        this.accountRepository = new AccountRepositoryInMem();
+        this.transactionRepository = new TransactionRepositoryInMem();
+        this.withdrawalService = withdrawalService;
+
+        final var withdrawalStatusChecker = new WithdrawalStateChecker(withdrawalService, transactionRepository);
+        final var transactionManager = new TransactionManager(transactionRepository, accountRepository);
+        final var withdrawalHandler = new WithdrawalHandler(withdrawalService, accountRepository, transactionManager);
+
+        final var resources = new Resources(accountRepository, withdrawalStatusChecker, withdrawalHandler);
+
+        this.transactionProcessor = new ScheduledTransactionProcessor(
+            Executors.newScheduledThreadPool(1),
+            Duration.ofSeconds(1),
+            new WithdrawalTransactionProcessor(withdrawalStatusChecker, transactionRepository, transactionManager)
+        );
+
         this.javalin = Javalin.create(config -> {
             config.jsonMapper(new JavalinJackson(
                 new ObjectMapper()
@@ -31,6 +59,7 @@ public class App {
     }
 
     public void start(int port) {
+        transactionProcessor.start();
         javalin.start(port);
     }
 
@@ -43,7 +72,7 @@ public class App {
     }
 
     public static void main(String[] args) {
-        final var app = new App();
+        final var app = new App(null);
         Runtime.getRuntime().addShutdownHook(new Thread(app::stop));
         app.start(8080);
     }

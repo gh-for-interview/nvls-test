@@ -1,3 +1,12 @@
+# Implementation notes:
+
+## Assumptions:
+
+- Service works with only 1 currency
+- Idempotency key for withdrawals considered out of scope for given requirements
+- Overdraft behaviour is not specified on model, but is not allowed to happen via API calls
+- Only one mapping exists between account and external address
+
 # Summary:
 
 Design and implement a Service with an API (including data model and the backing implementation) with following functional requirements:

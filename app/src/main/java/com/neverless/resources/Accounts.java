@@ -1,8 +1,8 @@
 package com.neverless.resources;
 
-import com.neverless.domain.Account;
-import com.neverless.domain.AccountId;
-import com.neverless.domain.AccountRepository;
+import com.neverless.domain.account.Account;
+import com.neverless.domain.account.AccountId;
+import com.neverless.domain.account.AccountRepository;
 import com.neverless.exceptions.NotFoundException;
 import io.javalin.http.Context;
 
@@ -22,7 +22,7 @@ public class Accounts {
 
     public record AccountResponse(AccountId id) {
         public static AccountResponse of(Account account) {
-            return new AccountResponse(account.id());
+            return new AccountResponse(account.id);
         }
     }
 }

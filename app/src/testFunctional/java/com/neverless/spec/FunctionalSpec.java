@@ -1,6 +1,10 @@
 package com.neverless.spec;
 
 import com.neverless.App;
+import com.neverless.domain.Money;
+import com.neverless.integration.WithdrawalService;
+import com.neverless.spec.stubs.ControlledWithdrawalServiceStub;
+import com.neverless.spec.stubs.WithdrawalServiceStub;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.specification.RequestSpecification;
@@ -51,9 +55,10 @@ public abstract class FunctionalSpec {
     public final static class ApplicationContext implements ExtensionContext.Store.CloseableResource {
 
         public final App app;
+        public final ControlledWithdrawalServiceStub<Money> withdrawalService = new ControlledWithdrawalServiceStub<>();
 
         public ApplicationContext() {
-            app = new App();
+            app = new App(withdrawalService);
             app.start(0);
         }
 

@@ -1,4 +1,4 @@
-package com.neverless.domain;
+package com.neverless.domain.account;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
