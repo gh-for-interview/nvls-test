@@ -86,7 +86,7 @@ public class WithdrawalsSpec extends FunctionalSpec {
         }
 
         @Test
-        void should_request_withdrawal_for_2_parallel_requests() {
+        void should_request_withdrawal_for_2_requests() {
             // given
             final var fromAccount = setupAccount();
             final var externalAddress = setupExternalAddress();
