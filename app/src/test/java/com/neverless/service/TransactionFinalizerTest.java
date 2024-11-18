@@ -53,7 +53,7 @@ class TransactionFinalizerTest {
 
         // then
         then(transactionRepository).should(times(1)).update(transaction.complete());
-        then(moneyMover).should(times(1)).addFunds(to, amount);
+        then(moneyMover).should(times(1)).addMoney(to, amount);
     }
 
     @Test
@@ -73,6 +73,6 @@ class TransactionFinalizerTest {
 
         // then
         then(transactionRepository).should(times(1)).update(transaction.fail());
-        then(moneyMover).should(times(1)).addFunds(from, amount);
+        then(moneyMover).should(times(1)).addMoney(from, amount);
     }
 }

@@ -53,7 +53,7 @@ class WithdrawalHandlerTest {
         given(accountRepository.find(externalAddress)).willReturn(Optional.of(externalAccount));
 
         var transactionId = TransactionId.random();
-        given(moneyMover.beginTransfer(eq(accountId), eq(externalAccount.id), eq(amount), any()))
+        given(moneyMover.moveMoney(eq(accountId), eq(externalAccount.id), eq(amount), any()))
             .willReturn(transactionId);
 
         // when

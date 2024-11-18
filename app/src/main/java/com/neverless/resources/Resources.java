@@ -29,7 +29,6 @@ public class Resources {
         router.exception(InsufficientBalanceException.class, (ex, ctx) -> handleError(400, ex, ctx));
         router.exception(IllegalArgumentException.class, (ex, ctx) -> handleError(400, ex, ctx));
         router.exception(JsonParseException.class, (ex, ctx) -> handleError(400, ex, ctx));
-//        router.exception(Exception.class, (ex, ctx) -> handleError(500, ex, ctx));
 
         router.get("/accounts/{id}", accounts::get);
         router.post("/withdrawal", withdrawals::withdrawMoney);

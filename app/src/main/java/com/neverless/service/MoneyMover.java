@@ -29,14 +29,14 @@ public class MoneyMover {
         this.lockManager = requireNonNull(lockManager);
     }
 
-    public TransactionId beginTransfer(AccountId from, AccountId to, Money amount) {
-        return beginTransfer(from, to, amount, empty());
+    public TransactionId moveMoney(AccountId from, AccountId to, Money amount) {
+        return moveMoney(from, to, amount, empty());
     }
 
-    public TransactionId beginTransfer(AccountId from,
-                                       AccountId to,
-                                       Money amount,
-                                       Optional<ExternalRef> externalRef) {
+    public TransactionId moveMoney(AccountId from,
+                                   AccountId to,
+                                   Money amount,
+                                   Optional<ExternalRef> externalRef) {
         if (amount.value().signum() != 1) {
             throw new IllegalArgumentException("Transfer amount should be greater than zero");
         }
@@ -66,7 +66,10 @@ public class MoneyMover {
         });
     }
 
-    public void addFunds(AccountId id, Money amount) {
+    public void addMoney(AccountId id, Money amount) {
+        if (amount.value().signum() < 1) {
+            throw new IllegalArgumentException("Amount should be greater than zero");
+        }
         lockManager.withLockBy(id.value().toString(), () -> {
             final var acc = accountRepository.get(id);
             accountRepository.update(acc.add(amount));

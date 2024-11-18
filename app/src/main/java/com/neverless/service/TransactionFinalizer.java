@@ -21,7 +21,7 @@ public class TransactionFinalizer {
         lockManager.withLockBy(id.value().toString(), () -> {
             final var transaction = transactionRepository.get(id);
             return lockManager.withLockBy(transaction.to().value().toString(), () -> {
-                moneyMover.addFunds(transaction.to(), transaction.amount());
+                moneyMover.addMoney(transaction.to(), transaction.amount());
 
                 transactionRepository.update(transaction.complete());
 
@@ -34,7 +34,7 @@ public class TransactionFinalizer {
         lockManager.withLockBy(id.value().toString(), () -> {
             final var transaction = transactionRepository.get(id);
             return lockManager.withLockBy(transaction.from().value().toString(), () -> {
-                moneyMover.addFunds(transaction.from(), transaction.amount());
+                moneyMover.addMoney(transaction.from(), transaction.amount());
 
                 transactionRepository.update(transaction.fail());
 

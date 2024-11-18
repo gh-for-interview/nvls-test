@@ -35,7 +35,7 @@ public class WithdrawalHandler {
         final var externalAccount = maybeExternalAccount.get();
         final var id = UUID.randomUUID();
         final var externalRef = new ExternalRef(id.toString());
-        final var withdrawalTransaction = moneyMover.beginTransfer(
+        final var withdrawalTransaction = moneyMover.moveMoney(
             fromAccountId,
             externalAccount.id,
             amount,
