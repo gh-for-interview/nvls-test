@@ -6,7 +6,7 @@ import static java.util.Objects.requireNonNull;
 
 public record Money(BigDecimal value) {
     public Money {
-        requireNonNull(value, "Value can't be zero");
+        requireNonNull(value, "Value can't be null");
     }
 
     public static Money zero() {
