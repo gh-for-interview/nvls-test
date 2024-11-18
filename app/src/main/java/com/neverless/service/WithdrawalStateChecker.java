@@ -1,10 +1,9 @@
 package com.neverless.service;
 
 import com.neverless.domain.Money;
-import com.neverless.domain.WithdrawalTransactionState;
+import com.neverless.domain.transaction.WithdrawalTransactionState;
 import com.neverless.domain.transaction.TransactionId;
 import com.neverless.domain.transaction.TransactionRepository;
-import com.neverless.exceptions.NotFoundException;
 import com.neverless.integration.WithdrawalService;
 import com.neverless.integration.WithdrawalService.WithdrawalId;
 

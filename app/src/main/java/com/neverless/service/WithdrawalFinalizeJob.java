@@ -5,31 +5,31 @@ import com.neverless.domain.transaction.TransactionRepository;
 import static com.neverless.domain.transaction.TransactionState.PENDING;
 import static com.neverless.domain.transaction.TransactionType.EXTERNAL;
 
-public class WithdrawalTransactionProcessor implements TransactionProcessor {
+public class WithdrawalFinalizeJob implements Job {
     private final WithdrawalStateChecker withdrawalStateChecker;
     private final TransactionRepository transactionRepository;
-    private final TransactionManager transactionManager;
+    private final TransactionFinalizer transactionFinalizer;
 
-    public WithdrawalTransactionProcessor(WithdrawalStateChecker withdrawalStateChecker,
-                                          TransactionRepository transactionRepository,
-                                          TransactionManager transactionManager) {
+    public WithdrawalFinalizeJob(WithdrawalStateChecker withdrawalStateChecker,
+                                 TransactionRepository transactionRepository,
+                                 TransactionFinalizer transactionFinalizer) {
         this.withdrawalStateChecker = withdrawalStateChecker;
         this.transactionRepository = transactionRepository;
-        this.transactionManager = transactionManager;
+        this.transactionFinalizer = transactionFinalizer;
     }
 
-    public void process() {
+    public void run() {
         transactionRepository.find(EXTERNAL, PENDING)
             .forEach(transaction -> {
                 try {
                     withdrawalStateChecker.checkWithdrawState(transaction.id()).ifPresentOrElse(state -> {
                         switch (state) {
-                            case COMPLETED -> transactionManager.completeTransaction(transaction.id());
-                            case FAILED -> transactionManager.failTransaction(transaction.id());
+                            case COMPLETED -> transactionFinalizer.complete(transaction.id());
+                            case FAILED -> transactionFinalizer.fail(transaction.id());
                             case PROCESSING -> { }
                         }
                     },
-                        () -> transactionManager.failTransaction(transaction.id())
+                        () -> transactionFinalizer.fail(transaction.id())
                     );
                 } catch (Exception e) {
                     // log

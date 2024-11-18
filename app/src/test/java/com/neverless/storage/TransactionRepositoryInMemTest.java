@@ -1,14 +1,14 @@
-package com.neverless.domain.transaction;
+package com.neverless.storage;
 
 import com.neverless.domain.Money;
-import com.neverless.domain.Version;
 import com.neverless.domain.account.AccountId;
+import com.neverless.domain.transaction.Transaction;
+import com.neverless.domain.transaction.TransactionId;
 import com.neverless.exceptions.NotFoundException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.util.ConcurrentModificationException;
 
 
 import static com.neverless.domain.transaction.Transaction.Builder.transaction;
@@ -105,24 +105,6 @@ class TransactionRepositoryInMemTest {
 
             // then
             assertThat(result).isEqualTo(updatedTxn);
-        }
-
-        @Test
-        void should_throw_if_transaction_is_not_exactly_one_version_higher() {
-            // given
-            var txn = repository.add(aTransaction());
-            var unmatchedByVersionTxn = transaction()
-                .id(txn.id())
-                .version(new Version(10))
-                .from(txn.from())
-                .to(txn.to())
-                .amount(txn.amount())
-                .type(txn.type())
-                .state(txn.state())
-                .build();
-
-            // then
-            assertThatThrownBy(() -> repository.update(unmatchedByVersionTxn)).isInstanceOf(ConcurrentModificationException.class);
         }
 
         @Test

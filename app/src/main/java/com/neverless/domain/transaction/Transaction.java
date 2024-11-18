@@ -1,12 +1,10 @@
 package com.neverless.domain.transaction;
 
 import com.neverless.domain.Money;
-import com.neverless.domain.Version;
 import com.neverless.domain.account.AccountId;
 
 import java.util.Optional;
 
-import static com.neverless.domain.Version.firstVersion;
 import static com.neverless.domain.transaction.Transaction.Builder.transaction;
 import static java.util.Objects.requireNonNull;
 
@@ -16,7 +14,6 @@ public record Transaction(TransactionId id,
                           Money amount,
                           TransactionState state,
                           TransactionType type,
-                          Version version,
                           Optional<ExternalRef> externalRef) {
     public Transaction {
         requireNonNull(id, "id can't be null");
@@ -25,7 +22,6 @@ public record Transaction(TransactionId id,
         requireNonNull(amount, "amount can't be null");
         requireNonNull(state, "state can't be null");
         requireNonNull(type, "type can't be null");
-        requireNonNull(version, "version can't be null");
 
         if (from.equals(to)) {
             throw new IllegalArgumentException("Transaction accounts must be different");
@@ -44,7 +40,6 @@ public record Transaction(TransactionId id,
             builder.amount,
             builder.state,
             builder.type,
-            builder.version,
             builder.externalRef);
     }
 
@@ -56,8 +51,7 @@ public record Transaction(TransactionId id,
             .state(state)
             .amount(amount)
             .externalRef(externalRef)
-            .type(type)
-            .version(version);
+            .type(type);
     }
 
     public Transaction complete() {
@@ -66,7 +60,6 @@ public record Transaction(TransactionId id,
         }
         return copy()
             .state(TransactionState.COMPLETED)
-            .version(version.increment())
             .build();
     }
 
@@ -76,7 +69,6 @@ public record Transaction(TransactionId id,
         }
         return copy()
             .state(TransactionState.FAILED)
-            .version(version.increment())
             .build();
     }
 
@@ -87,15 +79,13 @@ public record Transaction(TransactionId id,
         private Money amount;
         private TransactionState state;
         private TransactionType type;
-        private Version version;
 
         private Optional<ExternalRef> externalRef = Optional.empty();
 
         public static Builder transaction() {
             return new Builder()
                 .state(TransactionState.PENDING)
-                .randomId()
-                .version(firstVersion());
+                .randomId();
         }
 
         public Builder randomId() {
@@ -130,11 +120,6 @@ public record Transaction(TransactionId id,
 
         public Builder type(TransactionType type) {
             this.type = type;
-            return this;
-        }
-
-        public Builder version(Version version) {
-            this.version = version;
             return this;
         }
 

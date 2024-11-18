@@ -1,7 +1,7 @@
 package com.neverless.service;
 
 import com.neverless.domain.Money;
-import com.neverless.domain.WithdrawalTransactionState;
+import com.neverless.domain.transaction.WithdrawalTransactionState;
 import com.neverless.domain.account.AccountId;
 import com.neverless.domain.transaction.*;
 import com.neverless.integration.WithdrawalService;

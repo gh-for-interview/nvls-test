@@ -1,5 +1,6 @@
-package com.neverless.domain.transaction;
+package com.neverless.storage;
 
+import com.neverless.domain.transaction.*;
 import com.neverless.exceptions.NotFoundException;
 
 import java.util.*;
@@ -48,10 +49,6 @@ public class TransactionRepositoryInMem implements TransactionRepository {
         return storage.compute(transaction.id(), (_, currentValue) -> {
             if (currentValue == null) {
                 throw new NotFoundException("Transaction %s does not exists.".formatted(transaction.id().value()));
-            }
-
-            if (!Objects.equals(transaction.version(), currentValue.version().increment())) {
-                throw new ConcurrentModificationException("Attempting to update already modified entity %s".formatted(transaction.id()));
             }
 
             return transaction;

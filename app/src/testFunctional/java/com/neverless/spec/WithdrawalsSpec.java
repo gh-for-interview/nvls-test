@@ -1,11 +1,10 @@
 package com.neverless.spec;
 
-import com.neverless.domain.ExternalAddress;
+import com.neverless.domain.account.ExternalAddress;
 import com.neverless.domain.Money;
 import com.neverless.domain.account.AccountId;
 import com.neverless.domain.transaction.TransactionId;
 import com.neverless.integration.WithdrawalService.WithdrawalId;
-import com.neverless.spec.stubs.ControlledWithdrawalServiceStub;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,8 +26,6 @@ public class WithdrawalsSpec extends FunctionalSpec {
     protected WithdrawalsSpec(ApplicationContext context) {
         super(context);
     }
-
-    ControlledWithdrawalServiceStub<Money> withdrawalService = (ControlledWithdrawalServiceStub) application.withdrawalService;
 
     @Nested
     class WithdrawalsRequestSpec {
@@ -70,7 +67,7 @@ public class WithdrawalsSpec extends FunctionalSpec {
             assertThat(secondResponse.statusCode()).isEqualTo(400);
 
             // when
-            final var txn = application.transactionRepository.get(new TransactionId(responseId));
+            final var txn = transactionRepository.get(new TransactionId(responseId));
             withdrawalService.fail(new WithdrawalId(UUID.fromString(txn.externalRef().get().value())));
 
             // then
@@ -116,7 +113,7 @@ public class WithdrawalsSpec extends FunctionalSpec {
         @Test
         void should_return_400_when_balance_is_insufficient() {
             // given
-            final var fromAccount = application.accountRepository.add(userAccount().balance(zero()).build());
+            final var fromAccount = accountRepository.add(userAccount().balance(zero()).build());
             final var externalAddress = setupExternalAddress();
 
             // when
@@ -276,7 +273,7 @@ public class WithdrawalsSpec extends FunctionalSpec {
     }
 
     private WithdrawalId withdrawalId(UUID id) {
-        final var txn = application.transactionRepository.get(new TransactionId(id));
+        final var txn = transactionRepository.get(new TransactionId(id));
         return new WithdrawalId(UUID.fromString(txn.externalRef().get().value()));
     }
 
@@ -298,12 +295,12 @@ public class WithdrawalsSpec extends FunctionalSpec {
     }
 
     private AccountId setupAccount() {
-        return application.accountRepository.add(userAccount().balance(new Money(BigDecimal.TEN)).build()).id;
+        return accountRepository.add(userAccount().balance(new Money(BigDecimal.TEN)).build()).id;
     }
 
     private ExternalAddress setupExternalAddress() {
         final var externalAddress = new ExternalAddress(randomAlphabetic(12)); // random
-        application.accountRepository.add(externalAccount()
+        accountRepository.add(externalAccount()
             .externalAddress(externalAddress)
             .build());
         return externalAddress;

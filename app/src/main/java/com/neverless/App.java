@@ -8,9 +8,9 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.neverless.domain.Money;
 import com.neverless.domain.account.AccountRepository;
-import com.neverless.domain.account.AccountRepositoryInMem;
+import com.neverless.storage.AccountRepositoryInMem;
 import com.neverless.domain.transaction.TransactionRepository;
-import com.neverless.domain.transaction.TransactionRepositoryInMem;
+import com.neverless.storage.TransactionRepositoryInMem;
 import com.neverless.integration.WithdrawalService;
 import com.neverless.resources.Resources;
 import com.neverless.service.*;
@@ -23,28 +23,25 @@ import java.util.concurrent.Executors;
 
 public class App {
     private final Javalin javalin;
-    private final ScheduledTransactionProcessor transactionProcessor;
+    private final ScheduledJobRunner transactionProcessor;
 
-    public final AccountRepository accountRepository;
-    public final TransactionRepository transactionRepository;
-    public final WithdrawalService<Money> withdrawalService;
-
-    public App(WithdrawalService<Money> withdrawalService) {
-        this.accountRepository = new AccountRepositoryInMem();
-        this.transactionRepository = new TransactionRepositoryInMem();
-        this.withdrawalService = withdrawalService;
-
+    public App(WithdrawalService<Money> withdrawalService,
+               AccountRepository accountRepository,
+               TransactionRepository transactionRepository) {
         final var withdrawalStatusChecker = new WithdrawalStateChecker(withdrawalService, transactionRepository);
-        final var transactionManager = new TransactionManager(transactionRepository, accountRepository);
-        final var withdrawalHandler = new WithdrawalHandler(withdrawalService, accountRepository, transactionManager);
+        final var lockManager = new LockManager(100);
+        final var moneyMover = new MoneyMover(transactionRepository, accountRepository, lockManager);
+        final var withdrawalHandler = new WithdrawalHandler(withdrawalService, accountRepository, moneyMover);
+        final var transactionFinalizer = new TransactionFinalizer(transactionRepository, moneyMover, lockManager);
+
+        this.transactionProcessor = new ScheduledJobRunner(
+            Executors.newScheduledThreadPool(1),
+            Duration.ofSeconds(1),
+            new WithdrawalFinalizeJob(withdrawalStatusChecker, transactionRepository, transactionFinalizer)
+        );
 
         final var resources = new Resources(accountRepository, withdrawalStatusChecker, withdrawalHandler);
 
-        this.transactionProcessor = new ScheduledTransactionProcessor(
-            Executors.newScheduledThreadPool(1),
-            Duration.ofSeconds(1),
-            new WithdrawalTransactionProcessor(withdrawalStatusChecker, transactionRepository, transactionManager)
-        );
 
         this.javalin = Javalin.create(config -> {
             config.jsonMapper(new JavalinJackson(
@@ -72,7 +69,8 @@ public class App {
     }
 
     public static void main(String[] args) {
-        final var app = new App(null);
+        // Provide actual implementation of withdrawal service
+        final var app = new App(null, new AccountRepositoryInMem(), new TransactionRepositoryInMem());
         Runtime.getRuntime().addShutdownHook(new Thread(app::stop));
         app.start(8080);
     }

@@ -1,6 +1,5 @@
 package com.neverless.domain.account;
 
-import com.neverless.domain.ExternalAddress;
 import com.neverless.domain.Money;
 
 import java.util.Objects;

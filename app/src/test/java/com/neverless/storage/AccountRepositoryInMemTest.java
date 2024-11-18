@@ -1,14 +1,13 @@
-package com.neverless.domain.account;
+package com.neverless.storage;
 
-import com.neverless.domain.ExternalAddress;
 import com.neverless.domain.Money;
-import com.neverless.domain.Version;
+import com.neverless.domain.account.AccountId;
+import com.neverless.domain.account.ExternalAddress;
 import com.neverless.exceptions.NotFoundException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.util.ConcurrentModificationException;
 
 import static com.neverless.domain.account.ExternalAccount.Builder.externalAccount;
 import static com.neverless.domain.account.UserAccount.Builder.userAccount;
@@ -103,21 +102,6 @@ class AccountRepositoryInMemTest {
 
             // then
             assertThat(result).isEqualTo(updatedAcc);
-        }
-
-        @Test
-        void should_throw_if_transaction_is_not_exactly_one_version_higher() {
-            // given
-            var acc = repository.add(userAccount().build());
-            var unmatchedByVersionAcc = userAccount()
-                .id(acc.id)
-                .balance(acc.balance)
-                .type(acc.type)
-                .version(new Version(10))
-                .build();
-
-            // then
-            assertThatThrownBy(() -> repository.update(unmatchedByVersionAcc)).isInstanceOf(ConcurrentModificationException.class);
         }
 
         @Test

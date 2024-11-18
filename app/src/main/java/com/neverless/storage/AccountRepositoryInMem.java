@@ -1,12 +1,14 @@
-package com.neverless.domain.account;
+package com.neverless.storage;
 
 import com.google.common.util.concurrent.Striped;
-import com.neverless.domain.ExternalAddress;
+import com.neverless.domain.account.ExternalAddress;
+import com.neverless.domain.account.Account;
+import com.neverless.domain.account.AccountId;
+import com.neverless.domain.account.AccountRepository;
+import com.neverless.domain.account.ExternalAccount;
 import com.neverless.exceptions.NotFoundException;
 
-import java.util.ConcurrentModificationException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -36,10 +38,6 @@ public class AccountRepositoryInMem implements AccountRepository {
         return withLockByAccount(account.id, () -> storage.compute(account.id, (_, currentValue) -> {
             if (currentValue == null) {
                 throw new NotFoundException("Account %s does not exists.".formatted(account.id.value()));
-            }
-
-            if (!Objects.equals(account.version, currentValue.version.increment())) {
-                throw new ConcurrentModificationException("Attempting to update already modified account %s".formatted(account.id.value()));
             }
 
             if (account instanceof ExternalAccount externalAccount) {

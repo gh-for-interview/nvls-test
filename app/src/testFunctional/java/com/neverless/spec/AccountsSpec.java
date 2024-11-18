@@ -16,7 +16,7 @@ public class AccountsSpec extends FunctionalSpec {
     @Test
     void should_respond_with_account_on_accounts_get_when_exists() throws Exception {
         // given
-        final var account = application.accountRepository.add(userAccount().build());
+        final var account = accountRepository.add(userAccount().build());
 
         // when
         final var response = when().get("/accounts/{id}", account.id.value()).thenReturn();

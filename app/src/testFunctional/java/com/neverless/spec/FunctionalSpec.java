@@ -2,8 +2,10 @@ package com.neverless.spec;
 
 import com.neverless.App;
 import com.neverless.domain.Money;
-import com.neverless.integration.WithdrawalService;
-import com.neverless.spec.stubs.ControlledWithdrawalServiceStub;
+import com.neverless.domain.account.AccountRepository;
+import com.neverless.storage.AccountRepositoryInMem;
+import com.neverless.domain.transaction.TransactionRepository;
+import com.neverless.storage.TransactionRepositoryInMem;
 import com.neverless.spec.stubs.WithdrawalServiceStub;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
@@ -18,11 +20,17 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 public abstract class FunctionalSpec {
 
     protected final App application;
+    protected final WithdrawalServiceStub<Money> withdrawalService;
+    protected final TransactionRepository transactionRepository;
+    protected final AccountRepository accountRepository;
 
     private final RequestSpecification specification;
 
     protected FunctionalSpec(ApplicationContext context) {
         this.application = context.app;
+        this.withdrawalService = context.withdrawalService;
+        this.accountRepository = context.accountRepository;
+        this.transactionRepository = context.transactionRepository;
         this.specification = new RequestSpecBuilder()
             .setPort(context.app.port())
             .setBaseUri("http://localhost/")
@@ -55,10 +63,12 @@ public abstract class FunctionalSpec {
     public final static class ApplicationContext implements ExtensionContext.Store.CloseableResource {
 
         public final App app;
-        public final ControlledWithdrawalServiceStub<Money> withdrawalService = new ControlledWithdrawalServiceStub<>();
+        public final WithdrawalServiceStub<Money> withdrawalService = new WithdrawalServiceStub<>();
+        public final TransactionRepository transactionRepository = new TransactionRepositoryInMem();
+        public final AccountRepository accountRepository = new AccountRepositoryInMem();
 
         public ApplicationContext() {
-            app = new App(withdrawalService);
+            app = new App(withdrawalService, accountRepository, transactionRepository);
             app.start(0);
         }
 

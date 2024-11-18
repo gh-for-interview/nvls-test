@@ -1,7 +1,6 @@
 package com.neverless.service;
 
 import com.neverless.domain.Money;
-import com.neverless.domain.WithdrawalTransactionState;
 import com.neverless.domain.account.AccountId;
 import com.neverless.domain.transaction.Transaction;
 import com.neverless.domain.transaction.TransactionRepository;
@@ -12,8 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.neverless.domain.WithdrawalTransactionState.COMPLETED;
-import static com.neverless.domain.WithdrawalTransactionState.FAILED;
+import static com.neverless.domain.transaction.WithdrawalTransactionState.COMPLETED;
+import static com.neverless.domain.transaction.WithdrawalTransactionState.FAILED;
 import static com.neverless.domain.transaction.Transaction.Builder.transaction;
 import static com.neverless.domain.transaction.TransactionState.PENDING;
 import static com.neverless.domain.transaction.TransactionType.EXTERNAL;
@@ -22,14 +21,14 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
-class WithdrawalTransactionProcessorTest {
+class WithdrawalFinalizeJobTest {
     WithdrawalStateChecker withdrawalStateChecker = mock(WithdrawalStateChecker.class);
     TransactionRepository transactionRepository = mock(TransactionRepository.class);
-    TransactionManager transactionManager = mock(TransactionManager.class);
-    WithdrawalTransactionProcessor processor = new WithdrawalTransactionProcessor(
-            withdrawalStateChecker,
+    TransactionFinalizer transactionFinalizer = mock(TransactionFinalizer.class);
+    WithdrawalFinalizeJob processor = new WithdrawalFinalizeJob(
+        withdrawalStateChecker,
         transactionRepository,
-        transactionManager);
+        transactionFinalizer);
 
     @Test
     void does_nothing_when_there_are_no_pending_transactions() {
@@ -37,11 +36,11 @@ class WithdrawalTransactionProcessorTest {
         given(transactionRepository.find(EXTERNAL, PENDING)).willReturn(Collections.emptyList());
 
         // when
-        processor.process();
+        processor.run();
 
         // then
         then(withdrawalStateChecker).shouldHaveNoInteractions();
-        then(transactionManager).shouldHaveNoInteractions();
+        then(transactionFinalizer).shouldHaveNoInteractions();
     }
 
     @Test
@@ -52,10 +51,10 @@ class WithdrawalTransactionProcessorTest {
         given(withdrawalStateChecker.checkWithdrawState(transaction.id())).willReturn(Optional.of(COMPLETED));
 
         // when
-        processor.process();
+        processor.run();
 
         // then
-        then(transactionManager).should(times(1)).completeTransaction(transaction.id());
+        then(transactionFinalizer).should(times(1)).complete(transaction.id());
     }
 
     @Test
@@ -66,10 +65,10 @@ class WithdrawalTransactionProcessorTest {
         given(withdrawalStateChecker.checkWithdrawState(transaction.id())).willReturn(Optional.of(FAILED));
 
         // when
-        processor.process();
+        processor.run();
 
         // then
-        then(transactionManager).should(times(1)).failTransaction(transaction.id());
+        then(transactionFinalizer).should(times(1)).fail(transaction.id());
     }
 
     @Test
@@ -80,10 +79,10 @@ class WithdrawalTransactionProcessorTest {
         given(withdrawalStateChecker.checkWithdrawState(transaction.id())).willReturn(Optional.empty());
 
         // when
-        processor.process();
+        processor.run();
 
         // then
-        then(transactionManager).should(times(1)).failTransaction(transaction.id());
+        then(transactionFinalizer).should(times(1)).fail(transaction.id());
     }
 
     private Transaction.Builder aTransaction() {

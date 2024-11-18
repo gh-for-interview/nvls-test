@@ -1,7 +1,5 @@
 package com.neverless.domain.account;
 
-import com.neverless.domain.ExternalAddress;
-
 import java.util.Optional;
 
 public interface AccountRepository {

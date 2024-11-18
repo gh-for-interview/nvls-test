@@ -12,13 +12,13 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
-class ScheduledTransactionProcessorTest {
+class ScheduledJobRunnerTest {
 
     @Test
     void should_throw_when_scheduled_period_is_zero() {
         // then
         assertThatThrownBy(() ->
-            new ScheduledTransactionProcessor(mock(ScheduledExecutorService.class), Duration.ZERO, mock(TransactionProcessor.class)))
+            new ScheduledJobRunner(mock(ScheduledExecutorService.class), Duration.ZERO, mock(Job.class)))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -26,23 +26,23 @@ class ScheduledTransactionProcessorTest {
     void should_throw_when_scheduled_period_is_negative() {
         // then
         assertThatThrownBy(() ->
-            new ScheduledTransactionProcessor(mock(ScheduledExecutorService.class), Duration.ofSeconds(1).negated(), mock(TransactionProcessor.class)))
+            new ScheduledJobRunner(mock(ScheduledExecutorService.class), Duration.ofSeconds(1).negated(), mock(Job.class)))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @ParameterizedTest
     @MethodSource("argsForBuilder")
-    void should_throw_when_required_args_are_null(ScheduledExecutorService executorService, Duration duration, TransactionProcessor transactionProcessor) {
+    void should_throw_when_required_args_are_null(ScheduledExecutorService executorService, Duration duration, Job job) {
         // then
         assertThatThrownBy(() ->
-            new ScheduledTransactionProcessor(executorService, duration, transactionProcessor))
+            new ScheduledJobRunner(executorService, duration, job))
             .isInstanceOf(NullPointerException.class);
     }
 
     private static Stream<Arguments> argsForBuilder() {
         return Stream.of(
-            Arguments.of(null, Duration.ofSeconds(1), mock(TransactionProcessor.class)),
-            Arguments.of(mock(ScheduledExecutorService.class), null, mock(TransactionProcessor.class)),
+            Arguments.of(null, Duration.ofSeconds(1), mock(Job.class)),
+            Arguments.of(mock(ScheduledExecutorService.class), null, mock(Job.class)),
             Arguments.of(mock(ScheduledExecutorService.class), Duration.ofSeconds(1), null)
         );
     }

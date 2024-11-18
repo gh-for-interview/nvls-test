@@ -5,32 +5,26 @@ import com.neverless.integration.WithdrawalService;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ThreadLocalRandom;
 
-import static com.neverless.integration.WithdrawalService.WithdrawalState.COMPLETED;
-import static com.neverless.integration.WithdrawalService.WithdrawalState.FAILED;
-import static com.neverless.integration.WithdrawalService.WithdrawalState.PROCESSING;
+import static com.neverless.integration.WithdrawalService.WithdrawalState.*;
 
-/**
- * This is a sample stub for withdrawal service.
- * You can use this one or implement your own, given it follow correct specification
- */
+
 public class WithdrawalServiceStub<T> implements WithdrawalService<T> {
     private final ConcurrentMap<WithdrawalId, Withdrawal<T>> requests = new ConcurrentHashMap<>();
 
     @Override
     public void requestWithdrawal(WithdrawalId id, Address address, T amount) { // Please substitute T with preferred type
-        final var existing = requests.putIfAbsent(id, new Withdrawal<>(finalState(), finaliseAt(), address, amount));
+        final var existing = requests.putIfAbsent(id, new Withdrawal<>(PROCESSING, address, amount));
         if (existing != null && !(Objects.equals(existing.address, address) && Objects.equals(existing.amount, amount)))
             throw new IllegalStateException("Withdrawal request with id[%s] is already present".formatted(id));
     }
 
-    private WithdrawalState finalState() {
-        return ThreadLocalRandom.current().nextBoolean() ? COMPLETED : FAILED;
+    public void fail(WithdrawalId id) {
+        requests.compute(id, (_, existingRequest) -> new Withdrawal<>(FAILED, existingRequest.address, existingRequest.amount));
     }
 
-    private long finaliseAt() {
-        return System.currentTimeMillis() + ThreadLocalRandom.current().nextLong(1000, 10000);
+    public void complete(WithdrawalId id) {
+        requests.compute(id, (_, existingRequest) -> new Withdrawal<>(COMPLETED, existingRequest.address, existingRequest.amount));
     }
 
     @Override
@@ -38,13 +32,11 @@ public class WithdrawalServiceStub<T> implements WithdrawalService<T> {
         final var request = requests.get(id);
         if (request == null)
             throw new IllegalArgumentException("Request %s is not found".formatted(id));
-        return request.finalState();
+        return request.state();
     }
 
-    record Withdrawal<T>(WithdrawalState state, long finaliseAt, Address address, T amount) {
-        public WithdrawalState finalState() {
-            return finaliseAt <= System.currentTimeMillis() ? state : PROCESSING;
-        }
+    record Withdrawal<T>(WithdrawalState state, Address address, T amount) {
+
     }
 }
 

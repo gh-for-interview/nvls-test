@@ -6,26 +6,26 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 
-public class ScheduledTransactionProcessor {
+public class ScheduledJobRunner {
     private final ScheduledExecutorService scheduler;
     private final Duration schedulePeriod;
-    private final TransactionProcessor transactionProcessor;
+    private final Job job;
 
-    public ScheduledTransactionProcessor(ScheduledExecutorService scheduler,
-                                         Duration schedulePeriod,
-                                         TransactionProcessor transactionProcessor) {
+    public ScheduledJobRunner(ScheduledExecutorService scheduler,
+                              Duration schedulePeriod,
+                              Job job) {
         if (schedulePeriod.isZero() || schedulePeriod.isNegative()) {
             throw new IllegalArgumentException("Schedule period must be greater than zero");
         }
 
         this.scheduler = requireNonNull(scheduler);
-        this.transactionProcessor = requireNonNull(transactionProcessor);
+        this.job = requireNonNull(job);
         this.schedulePeriod = requireNonNull(schedulePeriod);
     }
 
     public void start() {
         scheduler.scheduleAtFixedRate(
-            transactionProcessor::process,
+            job::run,
             Duration.ZERO.toMillis(),
             schedulePeriod.toMillis(),
             TimeUnit.MILLISECONDS);

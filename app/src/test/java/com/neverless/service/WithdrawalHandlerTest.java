@@ -1,6 +1,6 @@
 package com.neverless.service;
 
-import com.neverless.domain.ExternalAddress;
+import com.neverless.domain.account.ExternalAddress;
 import com.neverless.domain.Money;
 import com.neverless.domain.account.AccountId;
 import com.neverless.domain.account.AccountRepository;
@@ -26,11 +26,11 @@ import static org.mockito.Mockito.*;
 class WithdrawalHandlerTest {
     WithdrawalService<Money> withdrawalService = mock(WithdrawalService.class);
     AccountRepository accountRepository = mock(AccountRepository.class);
-    TransactionManager transactionManager = mock(TransactionManager.class);
+    MoneyMover moneyMover = mock(MoneyMover.class);
     WithdrawalHandler withdrawalHandler = new WithdrawalHandler(
         withdrawalService,
         accountRepository,
-        transactionManager);
+            moneyMover);
 
     Money amount = new Money(BigDecimal.TEN);
     ExternalAddress externalAddress = new ExternalAddress(randomAlphabetic(8));
@@ -48,31 +48,12 @@ class WithdrawalHandlerTest {
     }
 
     @Test
-    void should_throw_and_revert_transaction_when_withdrawal_service_throws() {
-        // given
-        given(accountRepository.find(externalAddress)).willReturn(Optional.of(externalAccount));
-
-        var transactionId = TransactionId.random();
-        given(transactionManager.transferMoney(eq(accountId), eq(externalAccount.id), eq(amount), any()))
-            .willReturn(transactionId);
-
-        doThrow(new IllegalArgumentException("test"))
-            .when(withdrawalService)
-            .requestWithdrawal(any(WithdrawalService.WithdrawalId.class), eq(new WithdrawalService.Address(externalAddress.value())), eq(amount));
-
-        // then
-        assertThatThrownBy(() -> withdrawalHandler.withdraw(amount, accountId, externalAddress))
-            .isInstanceOf(IllegalArgumentException.class);
-        then(transactionManager).should(times(1)).failTransaction(transactionId);
-    }
-
-    @Test
     void should_request_withdrawal() {
         // given
         given(accountRepository.find(externalAddress)).willReturn(Optional.of(externalAccount));
 
         var transactionId = TransactionId.random();
-        given(transactionManager.transferMoney(eq(accountId), eq(externalAccount.id), eq(amount), any()))
+        given(moneyMover.beginTransfer(eq(accountId), eq(externalAccount.id), eq(amount), any()))
             .willReturn(transactionId);
 
         // when

@@ -1,11 +1,14 @@
 # Implementation notes:
 
-## Assumptions:
+## Assumptions and notes on implementation:
 
 - Service works with only 1 currency
 - Idempotency key for withdrawals considered out of scope for given requirements
 - Overdraft behaviour is not specified on model, but is not allowed to happen via API calls
 - Only one mapping exists between account and external address
+- Repositories operate in memory and don't store anything on disk
+- Logging, config etc are not implemented
+- App requires implementation of WithdrawalService to start
 
 # Summary:
 

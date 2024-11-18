@@ -1,6 +1,6 @@
 package com.neverless.resources;
 
-import com.neverless.domain.ExternalAddress;
+import com.neverless.domain.account.ExternalAddress;
 import com.neverless.domain.Money;
 import com.neverless.domain.account.AccountId;
 import com.neverless.domain.transaction.TransactionId;
